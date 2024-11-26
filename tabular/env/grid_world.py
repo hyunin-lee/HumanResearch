@@ -160,12 +160,12 @@ class GridWorld:
         # distort probabiltiy and reward
         for s in range(self.num_states):
             self.R[s] = value_distortion(self.R[s])
-    def pdistortion(self):
+    def pdistortion(self,gamma):
         # distort probabiltiy and reward
         for s in range(self.num_states):
             for a in range(self.num_actions) :
                 # distortion
-                dist_p = prob_distortion(self.P[s,:,a])
+                dist_p = prob_distortion(self.P[s,:,a],gamma)
                 # do normalization
                 self.P[s,:,a] = prob_normalization(dist_p)
 

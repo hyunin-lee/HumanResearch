@@ -1,11 +1,6 @@
 import numpy as np
 
-from utils.helper_functions import seq_to_col_row
-
-np.random.seed(0)
-
-
-def sarsa(model, alpha=0.5, epsilon=0.1, maxiter=100, maxeps=1000):
+def sarsa(model, alpha=0.5, beta = 1.0, epsilon=0.1, maxiter=100, maxeps=1000,exploration = "boltzmann",intrinsic_reward = None):
     """
     Solves the supplied environment using SARSA.
 
@@ -48,53 +43,76 @@ def sarsa(model, alpha=0.5, epsilon=0.1, maxiter=100, maxeps=1000):
     # initialize the state-action value function and the state counts
     Q = np.zeros((model.num_states, model.num_actions))
     state_counts = np.zeros((model.num_states, 1))
+    if intrinsic_reward == "MBIE-EB":
+        state_action_counts = np.zeros((model.num_states, model.num_actions))
+    ##########
+    reward_list_ep = []
+    #########
 
     for i in range(maxeps):
-
+        #########################
+        #### reset the reward ###
+        reward_list_withinep = []
+        #########################
         if np.mod(i,1000) == 0:
             print("Running episode %i." % i)
 
         # for each new episode, start at the given start state
         state = int(model.start_state_seq)
-        # sample first e-greedy action
-        action = sample_action(Q, state, model.num_actions, epsilon)
 
         for j in range(maxiter):
-            # initialize p and r
-            p, r = 0, np.random.random()
-            # sample the next state according to the action and the
-            # probability of the transition
-            for next_state in range(model.num_states):
-                p += model.P[state, next_state, action]
-                if r <= p:
-                    break
-            # epsilon-greedy action selection
-            next_action = sample_action(Q, next_state, model.num_actions, epsilon)
-            # Calculate the temporal difference and update Q function
-            Q[state, action] += alpha * (model.R[state] + model.gamma * Q[next_state, next_action] - Q[state, action])
-            # End episode is state is a terminal state
-
-            if np.any(state == model.goal_states_seq):
-                break
+            # sample first e-greedy action
+            if exploration == "e-greedy":
+                action = sample_action(Q, state, model.num_actions, epsilon)
+            elif exploration == "boltzmann":
+                action = sample_action_softmax(Q, state, model.num_actions)
+            else :
+                raise Exception("Invalid exploration type")
 
             # count the state visits
             state_counts[state] += 1
+            if intrinsic_reward =="MBIE-EB":
+                state_action_counts[state, action] += 1
 
-            # store the previous state and action
+            # hyunin fixed : just do random sampling
+            next_state_prob = model.P[state, :, action]
+            next_state = np.random.choice(model.num_states, 1, p=next_state_prob)[0]
+            # get next_action
+            if exploration == "e-greedy":
+                next_action = sample_action(Q, next_state, model.num_actions, epsilon)
+            elif exploration == "boltzmann":
+                next_action = sample_action_softmax(Q, next_state, model.num_actions)
+            else :
+                raise Exception("Invalid exploration type")
+
+            # Calculate the temporal difference and update Q function
+            if intrinsic_reward == "notuse":
+                Q[state, action] += alpha * (model.R[state] + model.gamma * Q[next_state, next_action] - Q[state, action])
+            elif intrinsic_reward == "MBIE-EB":
+                Q[state, action] += alpha * (model.R[state] + beta / np.sqrt(state_action_counts[state, action]) + model.gamma * Q[next_state, next_action] - Q[state, action])
+            else:
+                raise Exception("Invalid intrinsic reward type")
+            #Store the previous state
             state = next_state
-            action = next_action
+
+            ##### add reward #####
+            reward_list_withinep.append(model.R[state])
+            ######################
+
+            # End episode is state is a terminal state
+            if np.any(state == model.goal_states_seq):
+                reward_list_ep.append(np.sum(reward_list_withinep))
+                state_counts[state] += 1
+                break
+            elif j == maxiter - 1 :
+                reward_list_ep.append(np.sum(reward_list_withinep))
+                state_counts[state] += 1
 
     # determine the q function and policy
     q = np.max(Q, axis=1).reshape(-1,1)
     pi = np.argmax(Q, axis=1).reshape(-1,1)
 
-    return q, pi, state_counts
-
-# def datacollection(model, maxiter=100, maxeps=1000):
-#     data = []
-#     for i in range(maxeps):
-#         action = sampleaction(Q,state,)
-
+    return q, pi, state_counts , reward_list_ep
 
 def qlearning(model, alpha=0.5, beta = 1.0, epsilon=0.1, maxiter=100, maxeps=1000,exploration = "boltzmann",intrinsic_reward = None):
     # exploration = "boltzmann"
@@ -144,10 +162,7 @@ def qlearning(model, alpha=0.5, beta = 1.0, epsilon=0.1, maxiter=100, maxeps=100
     if intrinsic_reward == "MBIE-EB":
         state_action_counts = np.zeros((model.num_states, model.num_actions))
     ##########
-    count = 0
     reward_list_ep = []
-    reward_total = []
-    change_count = 0
     #########
 
     for i in range(maxeps):
@@ -180,11 +195,12 @@ def qlearning(model, alpha=0.5, beta = 1.0, epsilon=0.1, maxiter=100, maxeps=100
             next_state = np.random.choice(model.num_states, 1, p=next_state_prob)[0]
 
             # Calculate the temporal difference and update Q function
-            if intrinsic_reward == None:
+            if intrinsic_reward == "notuse":
                 Q[state, action] += alpha * (model.R[state] + model.gamma * np.max(Q[next_state, :]) - Q[state, action])
             elif intrinsic_reward == "MBIE-EB":
                 Q[state, action] += alpha * (model.R[state] + beta / np.sqrt(state_action_counts[state, action]) + model.gamma * np.max(Q[next_state, :]) - Q[state, action])
-
+            else:
+                raise Exception("Invalid intrinsic reward type")
             #Store the previous state
             state = next_state
 

@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-np.random.seed(0)
 
 def compare_p(num_states,num_actions,model,perceptionmodel) :
     l1_norm_list = []
@@ -84,20 +83,19 @@ def draw_distortion(savefig=False, path = None):
 def prob_normalization(probs) :
     return  probs  / sum(probs)
 
-def prob_distortion(probs):
-    gamma = 0.5
+def prob_distortion(probs,gamma):
     w_p_list = []
     for p in probs:
         w_p = p**gamma / (p**gamma + (1-p)**gamma)**(1/gamma)
         w_p_list.append(w_p)
     return w_p_list
 
-def prob_distortion_gamma(probs,gamma):
-    w_p_list = []
-    for p in probs:
-        w_p = p**gamma / (p**gamma + (1-p)**gamma)**(1/gamma)
-        w_p_list.append(w_p)
-    return w_p_list
+# def prob_distortion_gamma(probs,gamma):
+#     w_p_list = []
+#     for p in probs:
+#         w_p = p**gamma / (p**gamma + (1-p)**gamma)**(1/gamma)
+#         w_p_list.append(w_p)
+#     return w_p_list
 
 def row_col_to_seq(row_col, num_cols):
     return row_col[:,0] * num_cols + row_col[:,1]
