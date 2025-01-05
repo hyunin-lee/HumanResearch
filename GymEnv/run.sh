@@ -10,7 +10,7 @@ for env in "${envs[@]}"; do
   for lr in "${lrs[@]}"; do
     for seed in "${seeds[@]}"; do
       echo "Running main.py with --env=$env, --lr=$lr, and --seed=$seed"
-      python main.py --env "$env" --lr "$lr" --seed "$seed"
+      python main_dqn.py --env "$env" --lr "$lr" --seed "$seed"
     done
   done
 done

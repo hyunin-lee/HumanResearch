@@ -8,11 +8,12 @@ class TaxiUncertainty(TaxiEnv):
         super().__init__()
         self.modify_transition_probabilities()
         if r_distortion is not None:
-            self.reward_distotion()
+            self.reward_distortion()
         if p_distortion is not None:
             self.probability_distortion()
 
-    def reward_distotion(self):
+    def reward_distortion(self):
+        return None
 
 
     def modify_transition_probabilities(self):
