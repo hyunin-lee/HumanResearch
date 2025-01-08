@@ -234,12 +234,14 @@ def plot_pgamma(rp_dist_reward_dic,real_reward_dic,p_gamma,savename):
 if __name__ == "__main__":
     with open("data/rp_distortion_data.pkl", "rb") as pickle_file:
         rp_dist_reward_dic = pickle.load(pickle_file)
-    with open("data/real_data_nightmare.pkl", "rb") as pickle_file:
+    with open("data/no_data_moresteps_nightmare.pkl", "rb") as pickle_file:
         real_reward_dic = pickle.load(pickle_file)
     with open("data/r_distortion_data.pkl", "rb") as pickle_file:
         r_dist_reward_dic = pickle.load(pickle_file)
     with open("data/p_distortion_data.pkl", "rb") as pickle_file:
         p_dist_reward_dic = pickle.load(pickle_file)
+
+
     """
     1. How does three different maze have different faster convergence rate : 
     - A figure with easy, medium, hard that have no distortion 
@@ -251,24 +253,25 @@ if __name__ == "__main__":
     4. show what would happen if there exists only reward distortion 
     """
 
-
     ## both distortion
-    # plot_pgamma(rp_dist_reward_dic, real_reward_dic,p_gamma=0.5,savename="rp_rlambda_all_pgamma_05.pdf")
-    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.6,savename="rp_rlambda_all_pgamma_06.pdf")
-    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.7,savename="rp_rlambda_all_pgamma_07.pdf")
-    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.8,savename="rp_rlambda_all_pgamma_08.pdf")
-    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.9,savename="rp_rlambda_all_pgamma_09.pdf")
-    # plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=1,savename="rp_rlambda_1_pgamma_all.pdf")
-    # plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=3,savename="rp_rlambda_3_pgamma_all.pdf")
-    # plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=5, savename="rp_rlambda_5_pgamma_all.pdf")
-    # plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=8, savename="rp_rlambda_8_pgamma_all.pdf")
+    plot_pgamma(rp_dist_reward_dic, real_reward_dic,p_gamma=0.5,savename="rp_rlambda_all_pgamma_05.pdf")
+    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.6,savename="rp_rlambda_all_pgamma_06.pdf")
+    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.7,savename="rp_rlambda_all_pgamma_07.pdf")
+    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.8,savename="rp_rlambda_all_pgamma_08.pdf")
+    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.9,savename="rp_rlambda_all_pgamma_09.pdf")
+    plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=1,savename="rp_rlambda_1_pgamma_all.pdf")
+    plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=3,savename="rp_rlambda_3_pgamma_all.pdf")
+    plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=5, savename="rp_rlambda_5_pgamma_all.pdf")
+    plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=8, savename="rp_rlambda_8_pgamma_all.pdf")
 
     linestyle, label = get_linestyle_rdist()
     plot_multireward({**r_dist_reward_dic, **real_reward_dic}, linestyle, label,200, f"success rate")
-    #
-    # linestyle, label = get_linestyle_pdist()
-    # plot_multireward({**p_dist_reward_dic, **real_reward_dic}, linestyle, label, 200, f"success rate")
+
+    linestyle, label = get_linestyle_pdist()
+    plot_multireward({**p_dist_reward_dic, **real_reward_dic}, linestyle, label, 200, f"success rate")
 
 
+
+    ### draw
 
 

@@ -11,7 +11,7 @@ def train_rpdistortion(env_randomseed_list,env_mode_list,p_gamma_list,r_lambda_l
                 for r_lambda in r_lambda_list:
                     np.random.seed(seed)
                     # Create environment
-                    env = MazeGridWorldEnv(grid_size=(10, 10), start=(0,0), goal=(9,9), mode=mode, p_distortion=True,p_gamma=p_gamma,
+                    env = MazeGridWorldEnv(grid_size=(10, 10), start=(0,0), goal=(9,9), mode=mode, p_distortion=True, p_gamma=p_gamma,
                                            r_distortion=True,r_lambda=r_lambda)
 
                     # Train Q-learning
@@ -70,6 +70,28 @@ def train_nodistortion(env_randomseed_list,env_mode_list,alpha,gamma,num_episode
 
     return success_dic
 
+def train_nodistortion_more(env_randomseed_list,env_mode_list,alpha,gamma,num_episodes,max_steps_list):
+    success_dic = {}
+    for seed in env_randomseed_list :
+        for mode in env_mode_list:
+            for max_steps in max_steps_list :
+                np.random.seed(seed)
+                # Create environment
+                env = MazeGridWorldEnv(grid_size=(10, 10), start=(0,0), goal=(9,9), mode=mode, p_distortion=False, r_distortion=False)
+
+                # Train Q-learning
+                Q, rewards, successes = tabular_q_learning(env, alpha, gamma,
+                                                num_episodes, max_steps, print_reward = False)
+
+                key = f"l: {mode}"
+                if key not in success_dic :
+                    success_dic[key] = []
+                else :
+                    success_dic[key].append(successes)
+                print(f"seed: {seed}, mode: {mode}, max steps:{max_steps} \n Training complete.")
+
+    return success_dic
+
 
 def train_rdistortion(env_randomseed_list,env_mode_list,r_lambda_list,alpha,gamma,num_episodes,max_steps):
     success_dic = {}
@@ -116,12 +138,13 @@ if __name__ == "__main__":
     p_gamma_list = [0.5,0.6,0.7,0.8,0.9]
     r_lambda_list = [1,3,5,8]
 
-    distortion = "p"
+    distortion = "no"
 
     ## learning type
     if distortion == "no":
-        # p_bool,r_bool = False, False
         success_dic = train_nodistortion(env_randomseed_list,env_mode_list,alpha,gamma,num_episodes,max_steps)
+        # max_steps_list = [100,200,300,400,500,600,700,800,900,1000]
+        # success_dic = train_nodistortion_more(env_randomseed_list,env_mode_list,alpha,gamma,num_episodes,max_steps_list)
     elif distortion == "r":
         # p_bool,r_bool = True, False
         success_dic = train_rdistortion(env_randomseed_list,env_mode_list,r_lambda_list,alpha,gamma,num_episodes,max_steps)
@@ -135,5 +158,5 @@ if __name__ == "__main__":
         raise NotImplementedError
 
     # plot_multireward(success_dic, linestyle_dic,200, "success rate")
-    with open(f"./data/{distortion}_data_nightmare.pkl", "wb") as pickle_file:
+    with open(f"./data/{distortion}_data_moresteps_nightmare.pkl", "wb") as pickle_file:
         pickle.dump(success_dic, pickle_file)

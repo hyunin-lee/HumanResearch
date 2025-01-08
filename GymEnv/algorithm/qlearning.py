@@ -32,6 +32,84 @@ def epsilon_greedy_exploration(epsilon,env,Q,state_id):
         action = np.argmax(Q[state_id, :])
     return action
 
+def tabular_q_learning_multigoals(env, alpha, gamma, num_episodes, max_steps, goal_list,print_reward = False):
+    """
+    Performs tabular Q-learning on the given MazeGridWorldEnv.
+
+    Parameters
+    ----------
+    env         : MazeGridWorldEnv
+    alpha       : float, learning rate
+    gamma       : float, discount factor
+    epsilon     : float, exploration rate (epsilon-greedy)
+    num_episodes: int, number of episodes for training
+    max_steps   : int, max steps per episode
+
+    Returns
+    -------
+    Q : np.array of shape [num_states, num_actions]
+        Learned Q values for each state-action pair.
+    """
+
+
+    # first needs the goals
+    goal_count = [0] * len(goal_list)
+
+    # Number of states = grid_size[0]*grid_size[1]
+    nrows, ncols = env.grid_size
+    num_states = nrows * ncols
+    num_actions = env.action_space.n
+
+    # Initialize Q table
+    Q = np.zeros((num_states, num_actions))
+
+    # For logging: total reward in each episode
+    episode_rewards = []
+    episode_success = []
+
+    for ep in tqdm(range(num_episodes)):
+        # Reset environment
+        x, y = env.reset()
+        state_id = state_to_id(x, y, env.grid_size)
+        total_reward = 0.0
+        success_check = False
+
+        for step in range(max_steps):
+            # exploration
+            action = boltzman_exploration(Q, state_id, num_actions)
+
+            # Take action in the environment
+            (nx, ny), reward, done, _ = env.step(action)
+            success_check = done
+            next_state_id = state_to_id(nx, ny, env.grid_size)
+
+            # Q-learning update
+            best_next_action = np.argmax(Q[next_state_id, :])
+            td_target = reward + gamma * Q[next_state_id, best_next_action]
+            td_error = td_target - Q[state_id, action]
+            Q[state_id, action] += alpha * td_error
+
+            # Move to next state
+            state_id = next_state_id
+            total_reward += reward
+
+            # End episode if done
+            if done:
+                whichgoal = id_to_state(state_id,env.grid_size)
+                goal_idx = goal_list.index(whichgoal)
+                goal_count[goal_idx] += 1
+                # print(id_to_state(state_id,env.grid_size),reward)
+                break
+        if print_reward:
+            print(f"Episode {ep+1}/{num_episodes}, Reward: {total_reward:.2f}")
+
+        episode_rewards.append(total_reward)
+        episode_success.append(int(success_check))
+
+    return Q, episode_rewards, episode_success, goal_count
+
+
+
 def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward = False):
     """
     Performs tabular Q-learning on the given MazeGridWorldEnv.
