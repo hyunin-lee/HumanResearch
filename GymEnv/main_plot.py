@@ -19,7 +19,7 @@ def plot_reward(reward_list:list, window,title):
     plt.show()
     # plt.savefig(save_path)
 
-def plot_multireward(reward_dic, linestyle_dic, label_dic, window,savename):
+def plot_multireward(reward_dic, linestyle_dic, label_dic, env_mode_list,window,savename):
     """
     Plots the moving average of mean rewards and
     a standard deviation band for each key in reward_dic.
@@ -29,10 +29,9 @@ def plot_multireward(reward_dic, linestyle_dic, label_dic, window,savename):
 
 
     # Create three subplots side by side, sharing the y-axis
-    difficulties = ["easy", "medium", "hard"]
     fig, axs = plt.subplots(1, 3, figsize=(12 * 0.6,4 * 0.6), sharey=True)
 
-    for i, diff in enumerate(difficulties):
+    for i, diff in enumerate(env_mode_list):
         ax = axs[i]
 
         # Filter out keys that contain the difficulty string
@@ -79,6 +78,7 @@ def plot_multireward(reward_dic, linestyle_dic, label_dic, window,savename):
         # Set the subplot title (e.g. "Easy - your title")
         ax.set_title(f"{diff.capitalize()}")
         ax.set_xlabel("Episode")
+        ax.set_ylim(bottom=-0.05, top=1.05)
 
         # Only put the y-label on the first subplot for a clean look
         if i == 0:
@@ -231,15 +231,18 @@ def plot_pgamma(rp_dist_reward_dic,real_reward_dic,p_gamma,savename):
     plot_multireward({**reward_dic_r_lambda_all_p_dist_filter, **real_reward_dic}, linestyle_dic, label_dic,200, savename)
 
 
+
 if __name__ == "__main__":
-    with open("data/rp_distortion_data.pkl", "rb") as pickle_file:
+    with open("./data/1_rp_distortion_data.pkl", "rb") as pickle_file:
         rp_dist_reward_dic = pickle.load(pickle_file)
-    with open("data/no_data_moresteps_nightmare.pkl", "rb") as pickle_file:
+    with open("./data/1_no_distortion_data.pkl", "rb") as pickle_file:
         real_reward_dic = pickle.load(pickle_file)
-    with open("data/r_distortion_data.pkl", "rb") as pickle_file:
+    with open("./data/1_r_distortion_data.pkl", "rb") as pickle_file:
         r_dist_reward_dic = pickle.load(pickle_file)
-    with open("data/p_distortion_data.pkl", "rb") as pickle_file:
+    with open("./data/1_p_distortion_data.pkl", "rb") as pickle_file:
         p_dist_reward_dic = pickle.load(pickle_file)
+    with open("./data/1_no_distortion_data_count_based_beta0.5.pkl", "rb") as pickle_file:
+        real_reward_dic_reward_bonus = pickle.load(pickle_file)
 
 
     """
@@ -254,24 +257,107 @@ if __name__ == "__main__":
     """
 
     ## both distortion
-    plot_pgamma(rp_dist_reward_dic, real_reward_dic,p_gamma=0.5,savename="rp_rlambda_all_pgamma_05.pdf")
-    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.6,savename="rp_rlambda_all_pgamma_06.pdf")
-    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.7,savename="rp_rlambda_all_pgamma_07.pdf")
-    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.8,savename="rp_rlambda_all_pgamma_08.pdf")
-    plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.9,savename="rp_rlambda_all_pgamma_09.pdf")
-    plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=1,savename="rp_rlambda_1_pgamma_all.pdf")
-    plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=3,savename="rp_rlambda_3_pgamma_all.pdf")
-    plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=5, savename="rp_rlambda_5_pgamma_all.pdf")
-    plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=8, savename="rp_rlambda_8_pgamma_all.pdf")
+    # plot_pgamma(rp_dist_reward_dic, real_reward_dic,p_gamma=0.5,savename="rp_rlambda_all_pgamma_05.pdf")
+    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.6,savename="rp_rlambda_all_pgamma_06.pdf")
+    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.7,savename="rp_rlambda_all_pgamma_07.pdf")
+    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.8,savename="rp_rlambda_all_pgamma_08.pdf")
+    # plot_pgamma(rp_dist_reward_dic, real_reward_dic, p_gamma=0.9,savename="rp_rlambda_all_pgamma_09.pdf")
+    # plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=1,savename="rp_rlambda_1_pgamma_all.pdf")
+    # plot_rlambda(rp_dist_reward_dic, real_reward_dic,r_lambda=3,savename="rp_rlambda_3_pgamma_all.pdf")
+    # plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=5, savename="rp_rlambda_5_pgamma_all.pdf")
+    # plot_rlambda(rp_dist_reward_dic, real_reward_dic, r_lambda=8, savename="rp_rlambda_8_pgamma_all.pdf")
 
-    linestyle, label = get_linestyle_rdist()
-    plot_multireward({**r_dist_reward_dic, **real_reward_dic}, linestyle, label,200, f"success rate")
+    # linestyle, label = get_linestyle_rdist()
+    # plot_multireward({**r_dist_reward_dic, **real_reward_dic_reward_bonus}, linestyle, label,200, savename="success rate")
 
-    linestyle, label = get_linestyle_pdist()
-    plot_multireward({**p_dist_reward_dic, **real_reward_dic}, linestyle, label, 200, f"success rate")
-
-
+    # linestyle, label = get_linestyle_pdist()
+    # plot_multireward({**p_dist_reward_dic, **real_reward_dic_reward_bonus}, linestyle, label, 200, savename = "success rate")
 
     ### draw
+    with open("./data/2_no_distortion_data_count_based_b0.001.pkl", "rb") as pickle_file:
+        dic_rb1 = pickle.load(pickle_file)
+    with open("./data/2_no_distortion_data_count_based_b0.01.pkl", "rb") as pickle_file:
+        dic_rb2 = pickle.load(pickle_file)
+    with open("./data/2_no_distortion_data_count_based_b0.1.pkl", "rb") as pickle_file:
+        dic_rb3 = pickle.load(pickle_file)
+    with open("./data/2_no_distortion_data_count_based_b0.5.pkl", "rb") as pickle_file:
+        dic_rb4 = pickle.load(pickle_file)
+    with open("./data/2_no_distortion_data_count_based_b5.0.pkl", "rb") as pickle_file:
+        dic_rb5 = pickle.load(pickle_file)
+
+
+    distortionworld_color_list_red = ["#FFCDD2","#EF9A9A","#F44336","#C62828","#8B0000"]
+    distortionworld_color_list_green = ["#EDF8E9", "#BAE4B3", "#74C476", "#31A354", "#006D2C"]
+    distortionworld_color_list_blue = ["#EFF3FF", "#BDD7EE", "#6BAED6", "#3182BD", "#08519C"]
+    # mode_list = ["easy","medium","hard"]
+    mode_list = ["nightmare1", "nightmare2", "nightmare3"]
+
+    new_reward_dic= {}
+    label_dic = {}
+    linestyle_dic = {}
+    for key,value in dic_rb1.items() :
+        newkey = key + "/b=0.001"
+        new_reward_dic[newkey] = value
+        label_dic[newkey] = "b=0.001"
+        if mode_list[0] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_red[0],"-",2]
+        elif mode_list[1] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_green[0],"-",2]
+        elif mode_list[2] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_blue[0],"-",2]
+        else :
+            raise NotImplementError()
+
+    for key,value in dic_rb2.items() :
+        newkey = key + "/b=0.01"
+        new_reward_dic[newkey] = value
+        label_dic[newkey] = "b=0.01"
+        if mode_list[0] in key:
+            linestyle_dic[newkey] = [distortionworld_color_list_red[1], "-", 2]
+        elif mode_list[1] in key:
+            linestyle_dic[newkey] = [distortionworld_color_list_green[1], "-", 2]
+        elif mode_list[2] in key:
+            linestyle_dic[newkey] = [distortionworld_color_list_blue[1], "-", 2]
+        else:
+            raise NotImplementError()
+    for key,value in dic_rb3.items() :
+        newkey = key + "/b=0.1"
+        new_reward_dic[newkey] = value
+        label_dic[newkey] = "b=0.1"
+        if mode_list[0] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_red[2],"-",2]
+        elif mode_list[1] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_green[2],"-",2]
+        elif mode_list[2] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_blue[2],"-",2]
+        else :
+            raise NotImplementError()
+    for key,value in dic_rb4.items() :
+        newkey = key + "/b=0.5"
+        new_reward_dic[newkey] = value
+        label_dic[newkey] = "b=0.5"
+        if mode_list[0] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_red[3],"-",2]
+        elif mode_list[1] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_green[3],"-",2]
+        elif mode_list[2] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_blue[3],"-",2]
+        else :
+            raise NotImplementError()
+    for key,value in dic_rb5.items() :
+        newkey = key + "/b=5.0"
+        new_reward_dic[newkey] = value
+        label_dic[newkey] = "b=5.0"
+        if mode_list[0] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_red[4],"-",2]
+        elif mode_list[1] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_green[4],"-",2]
+        elif mode_list[2] in key :
+            linestyle_dic[newkey] = [distortionworld_color_list_blue[4],"-",2]
+        else :
+            raise NotImplementError()
+
+    plot_multireward(new_reward_dic, linestyle_dic, label_dic, mode_list,200,
+                     savename=f"2_no_distortions_countbased.pdf")
 
 

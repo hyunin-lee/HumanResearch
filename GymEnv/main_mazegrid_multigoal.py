@@ -162,20 +162,22 @@ if __name__ == "__main__":
 
     ## learning type
     if "no" in distortions :
-        success_dic_no,goalcount_dic_no = train_nodistortion(env_randomseed_list,env_mode_list,alpha,gamma,num_episodes,max_steps)
+        success_dic_no,goalcount_dic_no = train_nodistortion(env_randomseed_list,
+                                                             env_mode_list,alpha,
+                                                             gamma,
+                                                             num_episodes,
+                                                             max_steps
+                                                             )
     if "r" in distortions :
-        # p_bool,r_bool = True, False
         success_dic_r,goalcount_dic_r = train_rdistortion(env_randomseed_list,env_mode_list,r_lambda_list,alpha,gamma,num_episodes,max_steps)
     if "p" in distortions :
-        # p_bool,r_bool = False, True
         success_dic_p,goalcount_dic_p = train_pdistortion(env_randomseed_list,env_mode_list,p_gamma_list,alpha,gamma,num_episodes,max_steps)
     if "rp" in distortions :
-        # p_bool, r_bool = False, False
         success_dic,goalcount_dic_rp = train_rpdistortion(env_randomseed_list,env_mode_list,p_gamma_list,r_lambda_list,alpha,gamma,num_episodes,max_steps)
 
     _total_dic = {**goalcount_dic_no, **goalcount_dic_r, **goalcount_dic_p, **goalcount_dic_rp}
 
-    with open("./data/nightmares_multigoals.pkl", "wb") as pickle_file:
+    with open("data/no_r_p_rp_distortions_data_nightmares_multigoals.pkl", "wb") as pickle_file:
         pickle.dump(_total_dic, pickle_file)
 
 

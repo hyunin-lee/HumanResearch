@@ -31,7 +31,11 @@ def epsilon_greedy_exploration(epsilon,env,Q,state_id):
     else:
         action = np.argmax(Q[state_id, :])
     return action
-
+def ucb_exploration(Q, visit_count, state_id, c):
+    visit_count[state_id,:] += 1e-6  # Avoid division by zero
+    ucb_values = Q[state_id, :] + c * np.sqrt(np.log(np.sum(visit_count[state_id, :]) + 1) / visit_count[state_id, :])
+    action = np.argmax(ucb_values)
+    return action
 def tabular_q_learning_multigoals(env, alpha, gamma, num_episodes, max_steps, goal_list,print_reward = False):
     """
     Performs tabular Q-learning on the given MazeGridWorldEnv.
@@ -108,9 +112,7 @@ def tabular_q_learning_multigoals(env, alpha, gamma, num_episodes, max_steps, go
 
     return Q, episode_rewards, episode_success, goal_count
 
-
-
-def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward = False):
+def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, exploration_strategy = "boltzman", beta=None,c=None):
     """
     Performs tabular Q-learning on the given MazeGridWorldEnv.
 
@@ -128,7 +130,7 @@ def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward 
     Q : np.array of shape [num_states, num_actions]
         Learned Q values for each state-action pair.
     """
-
+    print(f"exploration strategy: {exploration_strategy}")
     # Number of states = grid_size[0]*grid_size[1]
     nrows, ncols = env.grid_size
     num_states = nrows * ncols
@@ -136,6 +138,14 @@ def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward 
 
     # Initialize Q table
     Q = np.zeros((num_states, num_actions))
+    if exploration_strategy in ["count_based", "ucb"] :
+        # define visit count
+        visit_count =  np.zeros((num_states,num_actions))
+    if exploration_strategy == "count_based" and beta is None :
+        raise ValueError("Count based algorithm requires beta")
+    if exploration_strategy == "ucb" and c is None :
+        raise ValueError("UCB algorithm requires c")
+
 
     # For logging: total reward in each episode
     episode_rewards = []
@@ -150,7 +160,19 @@ def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward 
 
         for step in range(max_steps):
             # exploration
-            action = boltzman_exploration(Q, state_id, num_actions)
+            # sample action
+            if exploration_strategy in ["count_based", "boltzman"]:
+                action = boltzman_exploration(Q, state_id, num_actions)
+            elif exploration_strategy == "e-greedy":
+                action = epsilon_greedy_exploration(epsilon,env,Q,state_id)
+            elif exploration_strategy == "ucb" :
+                action = ucb_exploration(Q, visit_count, state_id, c)
+            else :
+                raise NotImplementedError
+
+            if exploration_strategy in ["count_based", "ucb"] :
+                visit_count[state_id,action] += 1
+
 
             # Take action in the environment
             (nx, ny), reward, done, _ = env.step(action)
@@ -159,7 +181,10 @@ def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward 
 
             # Q-learning update
             best_next_action = np.argmax(Q[next_state_id, :])
-            td_target = reward + gamma * Q[next_state_id, best_next_action]
+            if exploration_strategy == "count-based" :
+                td_target = reward + beta/np.sqrt(visit_count[state_id,action]) + gamma * Q[next_state_id, best_next_action]
+            else :
+                td_target = reward + gamma * Q[next_state_id, best_next_action]
             td_error = td_target - Q[state_id, action]
             Q[state_id, action] += alpha * td_error
 
@@ -170,8 +195,6 @@ def tabular_q_learning(env, alpha, gamma, num_episodes, max_steps, print_reward 
             # End episode if done
             if done:
                 break
-        if print_reward:
-            print(f"Episode {ep+1}/{num_episodes}, Reward: {total_reward:.2f}")
 
         episode_rewards.append(total_reward)
         episode_success.append(int(success_check))
